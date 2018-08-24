@@ -3,58 +3,49 @@ package com.ht.commonactivity.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.mapper.Wrapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ht.commonactivity.common.ActivitiConstants;
 import com.ht.commonactivity.common.RpcStartParamter;
 import com.ht.commonactivity.common.enumtype.ActivitiSignEnum;
 import com.ht.commonactivity.common.result.Result;
-import com.ht.commonactivity.entity.ActModelDefinition;
-import com.ht.commonactivity.entity.ActProcRelease;
-import com.ht.commonactivity.entity.ModelCallLog;
-import com.ht.commonactivity.entity.ModelCallLogParam;
-import com.ht.commonactivity.rpc.UcAppRpc;
+import com.ht.commonactivity.entity.*;
 import com.ht.commonactivity.service.*;
 import com.ht.commonactivity.utils.NextTaskInfo;
 import com.ht.commonactivity.utils.ObjectUtils;
 import com.ht.commonactivity.vo.*;
 import com.ht.ussp.util.DateUtil;
-import com.sun.media.sound.ModelDestination;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import lombok.Data;
 import lombok.extern.log4j.Log4j2;
-import org.activiti.bpmn.model.BpmnModel;
-import org.activiti.bpmn.model.FlowElement;
+
 import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.engine.*;
 import org.activiti.engine.delegate.Expression;
 import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.identity.Authentication;
-import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.impl.task.TaskDefinition;
-import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.spring.web.json.Json;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @Api("工作流对外提供的接口服务")
 @Log4j2
 public class ActivitiOutServiceController implements ModelDataJsonConstants {
+
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     @Resource
     protected RepositoryService repositoryService;
@@ -95,8 +86,6 @@ public class ActivitiOutServiceController implements ModelDataJsonConstants {
     @Autowired
     private RedisTemplate<String, String> redis;
 
-    @Autowired
-    protected UcAppRpc ucAppRpc;
 
     protected static volatile ProcessEngine processEngine = null;
 
@@ -133,7 +122,7 @@ public class ActivitiOutServiceController implements ModelDataJsonConstants {
                 release = activitiService.getModelInfo(paramter.getProcessDefinedKey(), paramter.getVersion());
             }
             if (release == null) {
-                return Result.error(1, ActivitiConstants.MODEL_UNEXIST);
+                return Result.error(1, ActivitiConstants.MODEL_UNEXIST );
             }
             String ruleDrl = redis.opsForValue().get(paramter.getSysCode().toUpperCase() + paramter.getBusinessKey());
             if (StringUtils.isNotEmpty(ruleDrl)) {
@@ -141,9 +130,9 @@ public class ActivitiOutServiceController implements ModelDataJsonConstants {
                 List<ModelCallLog> callList = modelCallLogService.selectList(new EntityWrapper<ModelCallLog>().eq("sys_code", paramter.getSysCode().toUpperCase()));
                 List<ProcessInstance> processInstancs = runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(paramter.getBusinessKey()).list();
                 List<ProcessInstance> processInstancsN = new ArrayList<>();
-                for (ModelCallLog model : callList) {
-                    for (ProcessInstance processInstance : processInstancs) {
-                        if (model.getProInstId().equals(processInstance.getProcessInstanceId())) {
+                for ( ModelCallLog model : callList ) {
+                    for ( ProcessInstance processInstance : processInstancs ) {
+                        if ( model.getProInstId().equals( processInstance.getProcessInstanceId() ) ) {
                             processInstancsN.add(processInstance);
                         }
                     }
@@ -393,7 +382,7 @@ public class ActivitiOutServiceController implements ModelDataJsonConstants {
             }
         }
 
-        if (null != vo.getProcessDefinitionKey() && vo.getProcessDefinitionKey().size() > 0) {
+        if ( null != vo.getProcessDefinitionKey() && vo.getProcessDefinitionKey().size() > 0 ) {
             List<String> list = new ArrayList<>();
             vo.getProcessDefinitionKey().forEach(li -> {
                 Wrapper<ActProcRelease> wrapper = new EntityWrapper<ActProcRelease>();
@@ -420,6 +409,7 @@ public class ActivitiOutServiceController implements ModelDataJsonConstants {
             list.addAll(query.taskCandidateUser(vo.getCandidateUser())
                     .orderByTaskCreateTime().desc().listPage(vo.getFirstResult(), vo.getMaxResults()));
         }
+
         /**过滤非本系统流程任务*/
         List<Task> newList = new ArrayList<>();
         List<ModelCallLog> callList = modelCallLogService.selectList(new EntityWrapper<ModelCallLog>().eq("sys_code", vo.getSysCode().toUpperCase()));
@@ -544,7 +534,7 @@ public class ActivitiOutServiceController implements ModelDataJsonConstants {
 //        taskList.forEach(task -> {
 //            taskService.setVariables("dynName", vo.getParamMap());
 //        });
-        for (String s : vo.getCandidateUser()) {
+        for ( String s : vo.getCandidateUser() ) {
             taskService.addCandidateUser(vo.getTaskId(), s);
         }
         return Result.success("操作成功");
@@ -808,7 +798,7 @@ public class ActivitiOutServiceController implements ModelDataJsonConstants {
     @ApiOperation("根据模型编码获取流程所有节点")
     public Result<List<AllUserTaskOutVo>> getAllTaskByModelCode(@RequestBody GetAllTaskByModelCodeVo vo) {
         log.info("getAllTaskByModelCode param data:=========>" + JSON.toJSONString(vo));
-        if (com.ht.commonactivity.utils.StringUtils.isEmpty(vo.getModeCode())) {
+        if (StringUtils.isEmpty(vo.getModeCode())) {
             return Result.error(1, "modeCode模型编码不能为空!!");
         }
         List<AllUserTaskOutVo> result = new ArrayList<>();

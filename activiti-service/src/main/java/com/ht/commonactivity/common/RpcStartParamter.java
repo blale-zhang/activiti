@@ -32,6 +32,15 @@ public class RpcStartParamter implements Serializable {
      * 批次大小,批量调用时需要传递
      */
     private int batchSize;
+
+    private String businessKey;
+
+    private String sysCode;
+
+
+    private String processDefinedKey;
+
+
     /**
      * 批量调用流程参数
      */
@@ -107,5 +116,29 @@ public class RpcStartParamter implements Serializable {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getBusinessKey() {
+        return businessKey;
+    }
+
+    public void setBusinessKey(String businessKey) {
+        this.businessKey = businessKey;
+    }
+
+    public String getSysCode() {
+        return sysCode;
+    }
+
+    public void setSysCode(String sysCode) {
+        this.sysCode = sysCode;
+    }
+
+    public String getProcessDefinedKey() {
+        return processDefinedKey;
+    }
+
+    public void setProcessDefinedKey(String processDefinedKey) {
+        this.processDefinedKey = processDefinedKey;
     }
 }

@@ -35,4 +35,6 @@ public interface ProcessGoBack  {
     public List<ActivityImpl> getactivities(String taskId)  throws Exception ;
 //    public List<ActivityImpl> getactivities(HistoricTaskInstance currTask, ProcessInstance instance, String taskId)  throws Exception
 
+
+    public  ActivityImpl findActivitiImpl(String id, String m);
 }

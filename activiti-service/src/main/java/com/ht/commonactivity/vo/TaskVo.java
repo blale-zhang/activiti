@@ -10,6 +10,9 @@ public class TaskVo {
     private String executionId;
     private String procDefId;
     private String assign;
+    private String businessKey;
+    private String taskId;
+    private String sysCode;
 
     public String getAssign() {
         return assign;
@@ -65,5 +68,29 @@ public class TaskVo {
 
     public void setProcDefId(String procDefId) {
         this.procDefId = procDefId;
+    }
+
+    public String getBusinessKey() {
+        return businessKey;
+    }
+
+    public void setBusinessKey(String businessKey) {
+        this.businessKey = businessKey;
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
+
+    public String getSysCode() {
+        return sysCode;
+    }
+
+    public void setSysCode(String sysCode) {
+        this.sysCode = sysCode;
     }
 }
